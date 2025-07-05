@@ -31,6 +31,9 @@ class NekoRaceGame {
     
     setupEventListeners() {
         document.addEventListener('keydown', (e) => {
+            if (this.gameState === 'playing' && (e.key === ' ' || e.code === 'Space')) {
+                e.preventDefault();
+            }
             this.keys[e.key] = true;
             this.keys[e.code] = true;
         });
@@ -49,9 +52,10 @@ class NekoRaceGame {
             });
         });
         
-        document.getElementById('startBtn').addEventListener('click', () => {
+        document.getElementById('startBtn').addEventListener('click', (e) => {
             if (this.selectedCharacter) {
                 this.startGame();
+                e.target.blur();
             } else {
                 alert('キャラクターを選択してください！');
             }
