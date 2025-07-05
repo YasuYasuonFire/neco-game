@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ふくふくにゃんこ★レース大会</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            background: linear-gradient(135deg, #87CEEB 0%, #98FB98 100%);
+            font-family: 'Arial', sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+        
+        .game-container {
+            text-align: center;
+            background: rgba(255, 255, 255, 0.9);
+            border-radius: 20px;
+            padding: 20px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+        }
+        
+        h1 {
+            color: #FF6B6B;
+            margin-bottom: 20px;
+            font-size: 2.5em;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
+        }
+        
+        canvas {
+            border: 3px solid #FF6B6B;
+            border-radius: 15px;
+            background: #F0F8FF;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+        }
+        
+        .controls {
+            margin-top: 20px;
+            font-size: 1.2em;
+            color: #333;
+        }
+        
+        .character-select {
+            margin: 20px 0;
+        }
+        
+        .character-btn {
+            background: #FFB6C1;
+            border: none;
+            padding: 10px 20px;
+            margin: 5px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 1em;
+            transition: all 0.3s;
+        }
+        
+        .character-btn:hover {
+            background: #FF69B4;
+            transform: scale(1.05);
+        }
+        
+        .character-btn.selected {
+            background: #FF1493;
+            color: white;
+        }
+        
+        #startBtn {
+            background: #32CD32;
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            font-size: 1.3em;
+            border-radius: 25px;
+            cursor: pointer;
+            margin-top: 20px;
+            transition: all 0.3s;
+        }
+        
+        #startBtn:hover {
+            background: #228B22;
+            transform: scale(1.05);
+        }
+        
+        .game-info {
+            margin-top: 20px;
+            display: flex;
+            justify-content: space-around;
+            font-size: 1.1em;
+            color: #333;
+        }
+    </style>
+</head>
+<body>
+    <div class="game-container">
+        <h1>🐱 ふくふくにゃんこ★レース大会 🐱</h1>
+        
+        <div class="character-select">
+            <h3>キャラクターを選んでください：</h3>
+            <button class="character-btn" data-character="shirotama">しろたまちゃん</button>
+            <button class="character-btn" data-character="chatarou">ちゃたろう</button>
+            <button class="character-btn" data-character="kuromame">くろまめ</button>
+            <button class="character-btn" data-character="mikemi">みけみ</button>
+            <button class="character-btn" data-character="shio">しお</button>
+            <button class="character-btn" data-character="tama">たま</button>
+        </div>
+        
+        <canvas id="gameCanvas" width="800" height="600"></canvas>
+        
+        <div class="game-info">
+            <div>選択中: <span id="selectedCharacter">未選択</span></div>
+            <div>スコア: <span id="score">0</span></div>
+            <div>時間: <span id="timer">0</span></div>
+        </div>
+        
+        <button id="startBtn">ゲーム開始</button>
+        
+        <div class="controls">
+            <p>🎮 操作方法：</p>
+            <p>移動: ←→ キー | ジャンプ: スペース | 特殊能力: Shift</p>
+        </div>
+    </div>
+
+    <script src="game.js"></script>
+</body>
+</html>
