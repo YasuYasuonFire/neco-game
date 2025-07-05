@@ -5,9 +5,15 @@ class NekoRaceGame {
         this.selectedCharacter = null;
         this.gameState = 'menu';
         this.score = 0;
-        this.timer = 0;
         this.gameStartTime = 0;
-        this.raceDuration = 60000;
+        this.elapsedTime = 0;
+
+        this.worldWidth = 3000;
+        this.goalX = this.worldWidth - 150;
+        this.cameraX = 0;
+
+        this.winner = null;
+        this.playerRank = 0;
         
         this.characters = {
             shirotama: { name: 'しろたまちゃん', color: '#FFFFFF', ability: 'leader', maxSpeed: 5, acceleration: 0.5, x: 50, y: 400 },
@@ -112,9 +118,9 @@ class NekoRaceGame {
     generateObstacles() {
         this.obstacles = [];
         // 地面の障害物
-        for (let i = 0; i < 5; i++) {
+        for (let i = 0; i < this.worldWidth / 200; i++) {
             this.obstacles.push({
-                x: 200 + i * 120 + Math.random() * 40,
+                x: 400 + i * 200 + Math.random() * 80,
                 y: 490,
                 width: 30,
                 height: 30,
@@ -122,9 +128,9 @@ class NekoRaceGame {
             });
         }
         // 空中のプラットフォーム
-        for (let i = 0; i < 4; i++) {
+        for (let i = 0; i < this.worldWidth / 300; i++) {
             this.obstacles.push({
-                x: 150 + i * 150 + Math.random() * 50,
+                x: 300 + i * 300 + Math.random() * 100,
                 y: 350 + Math.random() * 100,
                 width: 80,
                 height: 20,
@@ -132,13 +138,13 @@ class NekoRaceGame {
             });
         }
     }
-    
+
     generateItems() {
         this.items = [];
-        for (let i = 0; i < 6; i++) {
+        for (let i = 0; i < this.worldWidth / 150; i++) {
             this.items.push({
-                x: 150 + i * 100 + Math.random() * 50,
-                y: 250 + Math.random() * 100,
+                x: 250 + i * 150 + Math.random() * 50,
+                y: 250 + Math.random() * 200,
                 width: 20,
                 height: 20,
                 type: ['speed', 'jump', 'star'][Math.floor(Math.random() * 3)],
@@ -149,19 +155,36 @@ class NekoRaceGame {
     
     update() {
         if (this.gameState !== 'playing') return;
-        
-        this.timer = Math.floor((Date.now() - this.gameStartTime) / 1000);
-        
-        if (Date.now() - this.gameStartTime > this.raceDuration) {
-            this.gameState = 'finished';
-            return;
-        }
-        
+
+        this.elapsedTime = (Date.now() - this.gameStartTime) / 1000;
+
         this.updatePlayer();
         this.updateNPCs();
+        this.updateCamera();
         this.updateParticles();
         this.checkCollisions();
-        this.updateUI();
+        this.checkGoal();
+    }
+
+    checkGoal() {
+        const characters = [this.player, ...this.npcs];
+        let finishedCharacter = null;
+
+        for (const char of characters) {
+            if (char.x >= this.goalX) {
+                finishedCharacter = char;
+                break;
+            }
+        }
+
+        if (finishedCharacter) {
+            this.gameState = 'finished';
+            this.winner = finishedCharacter;
+
+            // 順位の計算
+            const sortedCharacters = [...characters].sort((a, b) => b.x - a.x);
+            this.playerRank = sortedCharacters.findIndex(c => c === this.player) + 1;
+        }
     }
     
     updatePlayer() {
@@ -237,7 +260,20 @@ class NekoRaceGame {
         }
         
         // 画面端判定
-        this.player.x = Math.max(0, Math.min(this.canvas.width - 30, this.player.x));
+        this.player.x = Math.max(0, Math.min(this.worldWidth - 30, this.player.x));
+    }
+
+    updateCamera() {
+        if (!this.player) return;
+
+        const targetCameraX = this.player.x - this.canvas.width / 3;
+        
+        // カメラのスムーズな移動
+        const easing = 0.1;
+        this.cameraX += (targetCameraX - this.cameraX) * easing;
+
+        // カメラがワールドの範囲外に出ないように制限
+        this.cameraX = Math.max(0, Math.min(this.worldWidth - this.canvas.width, this.cameraX));
     }
     
     updateNPCs() {
@@ -374,50 +410,71 @@ class NekoRaceGame {
                obj1.y + 30 > obj2.y;
     }
     
-    updateUI() {
-        document.getElementById('score').textContent = this.score;
-        document.getElementById('timer').textContent = this.timer;
-    }
-    
     draw() {
         this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
-        
+
+        this.ctx.save();
+        this.ctx.translate(-this.cameraX, 0);
+
         this.drawBackground();
-        
+
         if (this.gameState === 'menu') {
             this.drawMenu();
-        } else if (this.gameState === 'playing') {
+        } else if (this.gameState === 'playing' || this.gameState === 'finished') {
             this.drawGame();
-        } else if (this.gameState === 'finished') {
+        } 
+
+        this.ctx.restore();
+
+        if (this.gameState === 'finished') {
             this.drawGameOver();
+        } else {
+            this.drawRaceInfo();
         }
     }
     
     drawBackground() {
-        const gradient = this.ctx.createLinearGradient(0, 0, 0, this.canvas.height);
-        gradient.addColorStop(0, '#87CEEB');
-        gradient.addColorStop(1, '#98FB98');
-        this.ctx.fillStyle = gradient;
-        this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
-        
-        this.ctx.fillStyle = '#90EE90';
-        this.ctx.fillRect(0, 540, this.canvas.width, 60);
-        
-        this.ctx.strokeStyle = '#FFFFFF';
-        this.ctx.lineWidth = 2;
-        for (let i = 0; i < this.canvas.width; i += 40) {
+        // 背景色
+        this.ctx.fillStyle = '#87CEEB';
+        this.ctx.fillRect(this.cameraX, 0, this.canvas.width, this.canvas.height);
+
+        // 遠景（動かない）
+        this.ctx.fillStyle = '#B0E0E6';
+        for (let i = 0; i < 10; i++) {
             this.ctx.beginPath();
-            this.ctx.moveTo(i, 540);
-            this.ctx.lineTo(i + 20, 540);
-            this.ctx.stroke();
+            this.ctx.moveTo(i * 300, 400 + Math.sin(i) * 50);
+            this.ctx.lineTo(i * 300 + 300, 400 + Math.cos(i) * 50);
+            this.ctx.lineTo(i * 300 + 150, 300 + Math.sin(i*2) * 50);
+            this.ctx.fill();
         }
+
+        // 中景（少し動く）
+        const midgroundX = this.cameraX * 0.5;
+        this.ctx.fillStyle = '#98FB98';
+        for (let i = 0; i < this.worldWidth / 200; i++) {
+            this.ctx.beginPath();
+            this.ctx.ellipse(i * 200 - midgroundX % 200, 500, 100, 50, 0, Math.PI, 0);
+            this.ctx.fill();
+        }
+
+        // 地面
+        this.ctx.fillStyle = '#90EE90';
+        this.ctx.fillRect(0, 540, this.worldWidth, 60);
+
+        // ゴールライン
+        this.ctx.fillStyle = '#FFD700';
+        this.ctx.fillRect(this.goalX, 0, 10, this.canvas.height);
+        this.ctx.fillStyle = '#FFFFFF';
+        this.ctx.font = '30px Arial';
+        this.ctx.textAlign = 'center';
+        this.ctx.fillText('GOAL', this.goalX + 5, 50);
     }
     
     drawMenu() {
         this.ctx.fillStyle = '#FF69B4';
-        this.ctx.font = '48px Arial';
+        this.ctx.font = "48px 'Fredoka One', cursive";
         this.ctx.textAlign = 'center';
-        this.ctx.fillText('ゲーム開始を押してね！', this.canvas.width / 2, this.canvas.height / 2);
+        this.ctx.fillText('ゲーム開始を押してね！', this.cameraX + this.canvas.width / 2, this.canvas.height / 2);
     }
     
     drawGame() {
@@ -425,7 +482,6 @@ class NekoRaceGame {
         this.drawItems();
         this.drawCharacters();
         this.drawParticles();
-        this.drawRaceInfo();
     }
     
     drawObstacles() {
@@ -597,32 +653,51 @@ class NekoRaceGame {
     
     drawRaceInfo() {
         this.ctx.fillStyle = '#FFFFFF';
-        this.ctx.font = '20px Arial';
+        this.ctx.font = "24px 'Fredoka One', cursive";
         this.ctx.textAlign = 'left';
-        this.ctx.fillText(`残り時間: ${Math.max(0, 60 - this.timer)}秒`, 10, 30);
-        this.ctx.fillText(`スコア: ${this.score}`, 10, 60);
-        
-        if (this.player && this.player.specialCooldown > 0) {
-            this.ctx.fillText(`特殊能力: ${Math.ceil(this.player.specialCooldown / 60)}秒`, 10, 90);
-        } else {
-            this.ctx.fillText('特殊能力: 使用可能', 10, 90);
+
+        // 経過時間
+        this.ctx.fillText(`Time: ${this.elapsedTime.toFixed(2)}`, 20, 40);
+
+        // ゴールまでのプログレスバー
+        const progress = this.player ? this.player.x / this.goalX : 0;
+        this.ctx.fillStyle = '#000000';
+        this.ctx.fillRect(this.canvas.width / 4, 20, this.canvas.width / 2, 20);
+        this.ctx.fillStyle = '#FFD700';
+        this.ctx.fillRect(this.canvas.width / 4, 20, (this.canvas.width / 2) * progress, 20);
+        this.ctx.strokeStyle = '#FFFFFF';
+        this.ctx.strokeRect(this.canvas.width / 4, 20, this.canvas.width / 2, 20);
+
+        // プレイヤーアイコン
+        if (this.player) {
+            this.ctx.fillStyle = this.player.color;
+            this.ctx.beginPath();
+            this.ctx.arc(this.canvas.width / 4 + (this.canvas.width / 2) * progress, 30, 10, 0, Math.PI * 2);
+            this.ctx.fill();
         }
     }
     
     drawGameOver() {
         this.ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
-        this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
-        
+        this.ctx.fillRect(this.cameraX, 0, this.canvas.width, this.canvas.height);
+
         this.ctx.fillStyle = '#FFFFFF';
-        this.ctx.font = '48px Arial';
+        this.ctx.font = "48px 'Fredoka One', cursive";
         this.ctx.textAlign = 'center';
-        this.ctx.fillText('レース終了！', this.canvas.width / 2, this.canvas.height / 2 - 50);
-        
-        this.ctx.font = '24px Arial';
-        this.ctx.fillText(`最終スコア: ${this.score}`, this.canvas.width / 2, this.canvas.height / 2 + 20);
-        
-        this.ctx.font = '18px Arial';
-        this.ctx.fillText('F5キーでリロードしてもう一度プレイ！', this.canvas.width / 2, this.canvas.height / 2 + 60);
+        this.ctx.fillText('FINISH!', this.cameraX + this.canvas.width / 2, this.canvas.height / 2 - 100);
+
+        if (this.winner) {
+            this.ctx.font = "36px 'Fredoka One', cursive";
+            this.ctx.fillText(`Winner: ${this.winner.name}`, this.cameraX + this.canvas.width / 2, this.canvas.height / 2 - 20);
+        }
+
+        this.ctx.font = "28px 'Nunito', sans-serif";
+        this.ctx.fillText(`Your Rank: ${this.playerRank}位`, this.cameraX + this.canvas.width / 2, this.canvas.height / 2 + 50);
+        this.ctx.font = "20px 'Nunito', sans-serif";
+        this.ctx.fillText(`Time: ${this.elapsedTime.toFixed(2)}s`, this.cameraX + this.canvas.width / 2, this.canvas.height / 2 + 100);
+
+        this.ctx.font = "20px 'Nunito', sans-serif";
+        this.ctx.fillText('F5キーでリロードしてもう一度！', this.cameraX + this.canvas.width / 2, this.canvas.height / 2 + 150);
     }
     
     gameLoop() {
