@@ -15,6 +15,10 @@ class NekoRaceGame {
         this.winner = null;
         this.playerRank = 0;
         
+        // Mobile detection and responsive sizing
+        this.isMobile = this.detectMobile();
+        this.setupResponsiveCanvas();
+        
         this.characters = {
             shirotama: { name: 'しろたまちゃん', color: '#FFFFFF', ability: 'leader', maxSpeed: 5, acceleration: 0.5, x: 50, y: 400 },
             chatarou: { name: 'ちゃたろう', color: '#D2691E', ability: 'mischief', maxSpeed: 6, acceleration: 0.6, x: 50, y: 430 },
@@ -31,8 +35,129 @@ class NekoRaceGame {
         this.particles = [];
         
         this.keys = {};
+        this.touches = {};
         this.setupEventListeners();
+        this.setupMobileControls();
+        this.updateControlsText();
         this.gameLoop();
+    }
+    
+    detectMobile() {
+        return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || window.innerWidth <= 768;
+    }
+    
+    setupResponsiveCanvas() {
+        const updateCanvasSize = () => {
+            const container = document.querySelector('.game-area');
+            const maxWidth = Math.min(window.innerWidth - 40, 800);
+            const maxHeight = Math.min(window.innerHeight * 0.6, 600);
+            
+            if (this.isMobile) {
+                // Mobile-specific sizing
+                const aspectRatio = 4 / 3;
+                let width = Math.min(maxWidth, window.innerWidth - 20);
+                let height = width / aspectRatio;
+                
+                if (height > maxHeight) {
+                    height = maxHeight;
+                    width = height * aspectRatio;
+                }
+                
+                this.canvas.width = Math.max(400, width);
+                this.canvas.height = Math.max(300, height);
+            } else {
+                // Desktop sizing
+                this.canvas.width = Math.min(maxWidth, 800);
+                this.canvas.height = Math.min(maxHeight, 600);
+            }
+            
+            // Update canvas display size
+            this.canvas.style.width = this.canvas.width + 'px';
+            this.canvas.style.height = this.canvas.height + 'px';
+        };
+        
+        updateCanvasSize();
+        window.addEventListener('resize', updateCanvasSize);
+        window.addEventListener('orientationchange', () => {
+            setTimeout(updateCanvasSize, 100);
+        });
+    }
+    
+    setupMobileControls() {
+        if (this.isMobile) {
+            const mobileControls = document.getElementById('mobileControls');
+            mobileControls.classList.add('show');
+            
+            // Touch event handlers
+            const leftBtn = document.getElementById('leftBtn');
+            const rightBtn = document.getElementById('rightBtn');
+            const jumpBtn = document.getElementById('jumpBtn');
+            const specialBtn = document.getElementById('specialBtn');
+            
+            // Left button
+            leftBtn.addEventListener('touchstart', (e) => {
+                e.preventDefault();
+                this.touches.left = true;
+                this.keys['ArrowLeft'] = true;
+            });
+            leftBtn.addEventListener('touchend', (e) => {
+                e.preventDefault();
+                this.touches.left = false;
+                this.keys['ArrowLeft'] = false;
+            });
+            
+            // Right button
+            rightBtn.addEventListener('touchstart', (e) => {
+                e.preventDefault();
+                this.touches.right = true;
+                this.keys['ArrowRight'] = true;
+            });
+            rightBtn.addEventListener('touchend', (e) => {
+                e.preventDefault();
+                this.touches.right = false;
+                this.keys['ArrowRight'] = false;
+            });
+            
+            // Jump button
+            jumpBtn.addEventListener('touchstart', (e) => {
+                e.preventDefault();
+                this.touches.jump = true;
+                this.keys[' '] = true;
+                this.keys['Space'] = true;
+            });
+            jumpBtn.addEventListener('touchend', (e) => {
+                e.preventDefault();
+                this.touches.jump = false;
+                this.keys[' '] = false;
+                this.keys['Space'] = false;
+            });
+            
+            // Special button
+            specialBtn.addEventListener('touchstart', (e) => {
+                e.preventDefault();
+                this.touches.special = true;
+                this.keys['Shift'] = true;
+            });
+            specialBtn.addEventListener('touchend', (e) => {
+                e.preventDefault();
+                this.touches.special = false;
+                this.keys['Shift'] = false;
+            });
+            
+            // Prevent context menu on long press
+            [leftBtn, rightBtn, jumpBtn, specialBtn].forEach(btn => {
+                btn.addEventListener('contextmenu', (e) => e.preventDefault());
+            });
+        }
+    }
+    
+    updateControlsText() {
+        const controlsText = document.getElementById('controlsText');
+        if (this.isMobile) {
+            controlsText.textContent = 'タッチボタンで操作してください';
+        } else {
+            controlsText.textContent = '移動: ←→ キー | ジャンプ: スペース | 特殊能力: Shift';
+        }
     }
     
     setupEventListeners() {

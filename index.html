@@ -2,10 +2,15 @@
 <html lang="ja">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>ねこねこスピードレース</title>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Fredoka+One:wght@400&family=Nunito:wght@400;600;700&display=swap');
+        
+        * {
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
         
         body {
             margin: 0;
@@ -18,7 +23,9 @@
             justify-content: center;
             align-items: center;
             min-height: 100vh;
+            min-height: 100svh; /* Safari mobile support */
             overflow: hidden;
+            touch-action: manipulation;
         }
         
         @keyframes gradientShift {
@@ -30,63 +37,80 @@
         .game-container {
             text-align: center;
             background: rgba(255, 255, 255, 0.95);
-            border-radius: 30px;
-            padding: 30px;
+            border-radius: 20px;
+            padding: 15px;
             box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3), 0 0 0 1px rgba(255, 255, 255, 0.5);
             backdrop-filter: blur(10px);
             border: 2px solid rgba(255, 255, 255, 0.3);
             animation: containerFloat 3s ease-in-out infinite;
+            width: 95vw;
+            max-width: 850px;
+            height: 95vh;
+            height: 95svh; /* Safari mobile support */
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
         }
         
         @keyframes containerFloat {
             0%, 100% { transform: translateY(0px); }
-            50% { transform: translateY(-5px); }
+            50% { transform: translateY(-2px); }
         }
         
         h1 {
             color: #FF6B6B;
-            margin-bottom: 20px;
-            font-size: 3em;
+            margin: 10px 0;
+            font-size: clamp(1.5rem, 6vw, 2.5rem);
             font-family: 'Fredoka One', cursive;
-            text-shadow: 3px 3px 0px #FFD93D, 6px 6px 0px #FF6B6B, 9px 9px 20px rgba(0, 0, 0, 0.3);
+            text-shadow: 2px 2px 0px #FFD93D, 4px 4px 0px #FF6B6B, 6px 6px 15px rgba(0, 0, 0, 0.3);
             animation: titleBounce 2s ease-in-out infinite;
             background: linear-gradient(45deg, #FF6B6B, #4ECDC4, #45B7D1);
             background-size: 200% 200%;
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             background-clip: text;
+            line-height: 1.2;
         }
         
         @keyframes titleBounce {
             0%, 100% { transform: translateY(0px); }
-            50% { transform: translateY(-10px); }
+            50% { transform: translateY(-5px); }
+        }
+        
+        .game-area {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            position: relative;
         }
         
         canvas {
-            border: 4px solid #FF6B6B;
-            border-radius: 20px;
+            border: 3px solid #FF6B6B;
+            border-radius: 15px;
             background: linear-gradient(135deg, #F0F8FF 0%, #E6F3FF 100%);
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3), inset 0 2px 4px rgba(255, 255, 255, 0.3);
+            box-shadow: 0 6px 25px rgba(0, 0, 0, 0.3), inset 0 2px 4px rgba(255, 255, 255, 0.3);
             transition: all 0.3s ease;
-        }
-        
-        canvas:hover {
-            transform: scale(1.02);
-            box-shadow: 0 12px 48px rgba(0, 0, 0, 0.4);
+            max-width: 100%;
+            max-height: 60vh;
+            height: auto;
+            width: auto;
         }
         
         .controls {
-            margin-top: 25px;
-            font-size: 1.1em;
+            margin-top: 10px;
+            font-size: clamp(0.8rem, 3vw, 1rem);
             color: #555;
             background: rgba(255, 255, 255, 0.7);
-            padding: 15px;
-            border-radius: 15px;
+            padding: 10px;
+            border-radius: 10px;
             box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            line-height: 1.4;
         }
         
         .controls p {
-            margin: 8px 0;
+            margin: 5px 0;
         }
         
         .floating-hearts {
@@ -118,23 +142,41 @@
         }
         
         .character-select {
-            margin: 20px 0;
+            margin: 15px 0;
+        }
+        
+        .character-select h3 {
+            margin: 10px 0;
+            font-size: clamp(1rem, 4vw, 1.2rem);
+            color: #333;
+        }
+        
+        .character-buttons {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 8px;
+            margin: 10px 0;
         }
         
         .character-btn {
             background: linear-gradient(45deg, #FFB6C1, #FF69B4);
             border: none;
-            padding: 12px 24px;
-            margin: 8px;
-            border-radius: 25px;
+            padding: clamp(8px, 2vw, 12px) clamp(12px, 3vw, 20px);
+            border-radius: 20px;
             cursor: pointer;
-            font-size: 1.1em;
+            font-size: clamp(0.8rem, 2.5vw, 1rem);
             font-weight: 600;
             color: white;
             transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
             box-shadow: 0 4px 15px rgba(255, 105, 180, 0.4);
             position: relative;
             overflow: hidden;
+            touch-action: manipulation;
+            user-select: none;
+            min-width: 120px;
+            flex: 1;
+            max-width: 150px;
         }
         
         .character-btn::before {
@@ -148,14 +190,16 @@
             transition: left 0.5s;
         }
         
-        .character-btn:hover::before {
+        .character-btn:hover::before,
+        .character-btn:active::before {
             left: 100%;
         }
         
-        .character-btn:hover {
+        .character-btn:hover,
+        .character-btn:active {
             background: linear-gradient(45deg, #FF69B4, #FF1493);
-            transform: scale(1.1) translateY(-2px);
-            box-shadow: 0 8px 25px rgba(255, 105, 180, 0.6);
+            transform: scale(1.05) translateY(-1px);
+            box-shadow: 0 6px 20px rgba(255, 105, 180, 0.6);
         }
         
         .character-btn.selected {
@@ -175,18 +219,22 @@
             background: linear-gradient(45deg, #32CD32, #228B22);
             color: white;
             border: none;
-            padding: 18px 36px;
-            font-size: 1.4em;
+            padding: clamp(12px, 3vw, 18px) clamp(24px, 6vw, 36px);
+            font-size: clamp(1.1rem, 4vw, 1.4rem);
             font-weight: 700;
-            border-radius: 30px;
+            border-radius: 25px;
             cursor: pointer;
-            margin-top: 25px;
+            margin: 15px 0;
             transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
             box-shadow: 0 6px 20px rgba(50, 205, 50, 0.4);
             position: relative;
             overflow: hidden;
             text-transform: uppercase;
             letter-spacing: 1px;
+            touch-action: manipulation;
+            user-select: none;
+            width: 100%;
+            max-width: 300px;
         }
         
         #startBtn::before {
@@ -200,40 +248,207 @@
             transition: left 0.5s;
         }
         
-        #startBtn:hover::before {
+        #startBtn:hover::before,
+        #startBtn:active::before {
             left: 100%;
         }
         
-        #startBtn:hover {
-            background: linear-gradient(45deg, #228B22, #006400);
-            transform: scale(1.1) translateY(-3px);
-            box-shadow: 0 10px 30px rgba(50, 205, 50, 0.6);
-        }
-        
+        #startBtn:hover,
         #startBtn:active {
-            transform: scale(0.98);
+            background: linear-gradient(45deg, #228B22, #006400);
+            transform: scale(1.05) translateY(-2px);
+            box-shadow: 0 8px 25px rgba(50, 205, 50, 0.6);
         }
         
         .game-info {
-            margin-top: 25px;
+            margin: 10px 0;
             display: flex;
             justify-content: space-around;
-            font-size: 1.2em;
+            font-size: clamp(0.9rem, 3vw, 1.1rem);
             font-weight: 600;
             color: #333;
+            flex-wrap: wrap;
+            gap: 10px;
         }
         
         .game-info > div {
             background: rgba(255, 255, 255, 0.8);
-            padding: 10px 15px;
-            border-radius: 15px;
+            padding: 8px 12px;
+            border-radius: 12px;
             box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
             transition: all 0.3s ease;
+            white-space: nowrap;
         }
         
         .game-info > div:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+        }
+        
+        /* Mobile Touch Controls */
+        .mobile-controls {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: none;
+            flex-direction: row;
+            gap: 15px;
+            z-index: 1000;
+        }
+        
+        .mobile-controls.show {
+            display: flex;
+        }
+        
+        .touch-btn {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            border: none;
+            background: rgba(255, 255, 255, 0.9);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            touch-action: manipulation;
+            user-select: none;
+            backdrop-filter: blur(10px);
+        }
+        
+        .touch-btn:active {
+            transform: scale(0.9);
+            background: rgba(255, 255, 255, 0.7);
+        }
+        
+        .touch-btn.left {
+            background: linear-gradient(45deg, #FF6B6B, #FF4757);
+            color: white;
+        }
+        
+        .touch-btn.right {
+            background: linear-gradient(45deg, #4ECDC4, #26D0CE);
+            color: white;
+        }
+        
+        .touch-btn.jump {
+            background: linear-gradient(45deg, #32CD32, #228B22);
+            color: white;
+            width: 80px;
+            height: 80px;
+            font-size: 32px;
+        }
+        
+        .touch-btn.special {
+            background: linear-gradient(45deg, #FFD93D, #FF6B6B);
+            color: white;
+            width: 50px;
+            height: 50px;
+            font-size: 20px;
+        }
+        
+        /* Mobile-specific adjustments */
+        @media (max-width: 768px) {
+            .game-container {
+                padding: 10px;
+                border-radius: 15px;
+                width: 100vw;
+                height: 100vh;
+                height: 100svh;
+            }
+            
+            .character-buttons {
+                gap: 5px;
+            }
+            
+            .character-btn {
+                min-width: 100px;
+                font-size: 0.8rem;
+                padding: 8px 12px;
+            }
+            
+            .controls {
+                font-size: 0.8rem;
+                padding: 8px;
+            }
+            
+            .mobile-controls.show {
+                display: flex;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .character-buttons {
+                flex-direction: column;
+                max-width: 200px;
+                margin: 0 auto;
+            }
+            
+            .character-btn {
+                min-width: auto;
+                max-width: none;
+            }
+            
+            .game-info {
+                flex-direction: column;
+                gap: 5px;
+            }
+            
+            .touch-btn {
+                width: 50px;
+                height: 50px;
+                font-size: 20px;
+            }
+            
+            .touch-btn.jump {
+                width: 70px;
+                height: 70px;
+                font-size: 28px;
+            }
+        }
+        
+        /* Landscape orientation on mobile */
+        @media (max-height: 500px) and (orientation: landscape) {
+            .game-container {
+                flex-direction: row;
+                padding: 10px;
+            }
+            
+            .game-area {
+                flex: 1;
+            }
+            
+            .character-select {
+                margin: 5px 0;
+            }
+            
+            .character-select h3 {
+                font-size: 1rem;
+                margin: 5px 0;
+            }
+            
+            .character-buttons {
+                gap: 5px;
+            }
+            
+            .character-btn {
+                padding: 6px 10px;
+                font-size: 0.75rem;
+            }
+            
+            h1 {
+                font-size: 1.5rem;
+                margin: 5px 0;
+            }
+            
+            .controls {
+                font-size: 0.7rem;
+                padding: 5px;
+                margin-top: 5px;
+            }
         }
     </style>
 </head>
@@ -244,26 +459,38 @@
         
         <div class="character-select">
             <h3>キャラクターを選んでください：</h3>
-            <button class="character-btn" data-character="shirotama">しろたまちゃん</button>
-            <button class="character-btn" data-character="chatarou">ちゃたろう</button>
-            <button class="character-btn" data-character="kuromame">くろまめ</button>
-            <button class="character-btn" data-character="mikemi">みけみ</button>
-            <button class="character-btn" data-character="shio">しお</button>
-            <button class="character-btn" data-character="tama">たま</button>
+            <div class="character-buttons">
+                <button class="character-btn" data-character="shirotama">しろたまちゃん</button>
+                <button class="character-btn" data-character="chatarou">ちゃたろう</button>
+                <button class="character-btn" data-character="kuromame">くろまめ</button>
+                <button class="character-btn" data-character="mikemi">みけみ</button>
+                <button class="character-btn" data-character="shio">しお</button>
+                <button class="character-btn" data-character="tama">たま</button>
+            </div>
         </div>
         
-        <canvas id="gameCanvas" width="800" height="600"></canvas>
-        
-        <div class="game-info">
-            <div>選択中: <span id="selectedCharacter">未選択</span></div>
+        <div class="game-area">
+            <canvas id="gameCanvas" width="800" height="600"></canvas>
+            
+            <div class="game-info">
+                <div>選択中: <span id="selectedCharacter">未選択</span></div>
+            </div>
         </div>
         
         <button id="startBtn">ゲーム開始</button>
         
         <div class="controls">
             <p>🎮 操作方法：</p>
-            <p>移動: ←→ キー | ジャンプ: スペース | 特殊能力: Shift</p>
+            <p id="controlsText">移動: ←→ キー | ジャンプ: スペース | 特殊能力: Shift</p>
         </div>
+    </div>
+    
+    <!-- Mobile Touch Controls -->
+    <div class="mobile-controls" id="mobileControls">
+        <button class="touch-btn left" id="leftBtn">←</button>
+        <button class="touch-btn jump" id="jumpBtn">↑</button>
+        <button class="touch-btn right" id="rightBtn">→</button>
+        <button class="touch-btn special" id="specialBtn">✨</button>
     </div>
 
     <script src="game.js"></script>
