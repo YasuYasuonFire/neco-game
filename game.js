@@ -15,14 +15,8 @@ class NekoRaceGame {
         this.winner = null;
         this.playerRank = 0;
         
-        this.characters = {
-            shirotama: { name: 'しろたまちゃん', color: '#FFFFFF', ability: 'leader', maxSpeed: 5, acceleration: 0.5, x: 50, y: 400 },
-            chatarou: { name: 'ちゃたろう', color: '#D2691E', ability: 'mischief', maxSpeed: 6, acceleration: 0.6, x: 50, y: 430 },
-            kuromame: { name: 'くろまめ', color: '#000000', ability: 'night', maxSpeed: 5.5, acceleration: 0.4, x: 50, y: 460 },
-            mikemi: { name: 'みけみ', color: '#FF8C00', ability: 'fashion', maxSpeed: 4.8, acceleration: 0.7, x: 50, y: 490 },
-            shio: { name: 'しお', color: '#808080', ability: 'steady', maxSpeed: 4.5, acceleration: 0.3, x: 50, y: 520 },
-            tama: { name: 'たま', color: '#F5F5DC', ability: 'baby', maxSpeed: 5.8, acceleration: 0.8, x: 50, y: 550 }
-        };
+        this.characters = {};
+        this.charactersLoaded = false;
         
         this.player = null;
         this.npcs = [];
@@ -32,7 +26,49 @@ class NekoRaceGame {
         
         this.keys = {};
         this.setupEventListeners();
+        this.loadCharacters();
         this.gameLoop();
+    }
+    
+    async loadCharacters() {
+        try {
+            const response = await fetch('/api/characters');
+            const characters = await response.json();
+            
+            this.characters = {};
+            characters.forEach(char => {
+                this.characters[char.character_key] = {
+                    name: char.name,
+                    color: char.color,
+                    ability: char.ability,
+                    maxSpeed: parseFloat(char.max_speed),
+                    acceleration: parseFloat(char.acceleration),
+                    description: char.description,
+                    x: 50,
+                    y: 400
+                };
+            });
+            
+            this.charactersLoaded = true;
+            console.log('Characters loaded from database:', this.characters);
+        } catch (error) {
+            console.error('Failed to load characters from database:', error);
+            // Fallback to hardcoded characters
+            this.loadFallbackCharacters();
+        }
+    }
+    
+    loadFallbackCharacters() {
+        this.characters = {
+            shirotama: { name: 'しろたまちゃん', color: '#FFFFFF', ability: 'leader', maxSpeed: 5, acceleration: 0.5, x: 50, y: 400 },
+            chatarou: { name: 'ちゃたろう', color: '#D2691E', ability: 'mischief', maxSpeed: 6, acceleration: 0.6, x: 50, y: 430 },
+            kuromame: { name: 'くろまめ', color: '#000000', ability: 'night', maxSpeed: 5.5, acceleration: 0.4, x: 50, y: 460 },
+            mikemi: { name: 'みけみ', color: '#FF8C00', ability: 'fashion', maxSpeed: 4.8, acceleration: 0.7, x: 50, y: 490 },
+            shio: { name: 'しお', color: '#808080', ability: 'steady', maxSpeed: 4.5, acceleration: 0.3, x: 50, y: 520 },
+            tama: { name: 'たま', color: '#F5F5DC', ability: 'baby', maxSpeed: 5.8, acceleration: 0.8, x: 50, y: 550 }
+        };
+        this.charactersLoaded = true;
+        console.log('Using fallback characters');
     }
     
     setupEventListeners() {
