@@ -41,6 +41,6 @@
       ]
     }
   ],
-  "regions": ["hnd1", "nrt1"],
+  "regions": ["hnd1"],
   "framework": null
 }
