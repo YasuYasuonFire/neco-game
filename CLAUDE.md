@@ -54,16 +54,21 @@ Server runs on `http://localhost:3000`
 
 ### Database Operations
 
-The SQLite database is automatically created and initialized on first run. Tables:
+The Neon Database (PostgreSQL) is automatically initialized on first API call. Tables:
+- `characters` - Character definitions with abilities and stats
 - `users` - User accounts with id, username, created_at
-- `scores` - Race results with user_id, time, character, created_at
+- `scores` - Race results with user_id, character_key, time, stage, created_at
 
 ### API Endpoints
 
+- `GET /api/characters` - Get all available characters
+- `GET /api/characters/:key` - Get specific character by key
 - `POST /api/users` - Register new user
 - `GET /api/users/:userId` - Get user info
+- `GET /api/users/username/:username` - Get user by username
 - `POST /api/scores` - Save race result
 - `GET /api/scores` - Get leaderboard (top 100)
+- `GET /api/users/:userId/scores` - Get user's scores
 
 ## Code Architecture Details
 
@@ -104,8 +109,34 @@ Implements smooth camera following with:
 - No external libraries or frameworks - pure vanilla JavaScript
 - Character rendering uses procedural drawing (no sprite images)
 - UI styling uses modern CSS features (gradients, animations, backdrop-filter)
-- Database operations use callback-style SQLite API
+- Database operations use Neon Database (PostgreSQL) with @vercel/postgres
 - Frontend-backend communication uses fetch API
+
+## Deployment Guidelines
+
+### Vercel Production Deployment
+
+**IMPORTANT**: Only deploy to Vercel production (`vercel --prod`) from the `main` branch.
+
+- **✅ Allowed**: `vercel --prod` when on `main` branch
+- **❌ Forbidden**: `vercel --prod` from any other branch (feature branches, development branches, etc.)
+
+### Development/Preview Deployments
+
+For non-main branches, use preview deployments only:
+```bash
+# For preview/testing (allowed from any branch)
+vercel
+
+# For production (ONLY from main branch)
+vercel --prod
+```
+
+### Branch Management
+
+- Keep only `main` branch in remote repository
+- Delete feature branches after merging to main
+- Clean up remote branches regularly to maintain repository hygiene
 
 ## Game Controls
 
