@@ -5,21 +5,10 @@
       "runtime": "@vercel/node@20"
     }
   },
-  "routes": [
+  "rewrites": [
     {
-      "src": "/api/(.*)",
-      "dest": "/api/server.js"
-    },
-    {
-      "src": "/",
-      "dest": "/index.html"
-    },
-    {
-      "src": "/(.*\\.(js|html|css|png|jpg|jpeg|gif|svg|ico|json))",
-      "dest": "/$1",
-      "headers": {
-        "Cache-Control": "public, max-age=3600"
-      }
+      "source": "/api/(.*)",
+      "destination": "/api/server.js"
     }
   ],
   "headers": [
@@ -37,6 +26,15 @@
         {
           "key": "Access-Control-Allow-Headers",
           "value": "Content-Type, Authorization"
+        }
+      ]
+    },
+    {
+      "source": "/(.*\\.(js|html|css|png|jpg|jpeg|gif|svg|ico|json))",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=3600"
         }
       ]
     }
