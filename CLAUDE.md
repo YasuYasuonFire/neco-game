@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-This is a 2D side-scrolling racing game called "ふくふくにゃんこ★レース大会" (Fluffy Cat Racing Tournament). Players control cute cat characters in a race against NPCs to reach the goal line first.
+This is a 2D side-scrolling racing game called "ねこねこスピードレース" (Neko Neko Speed Race). Players control cute cat characters in a race against NPCs to reach the goal line first.
 
 ## Architecture
 
