@@ -9,12 +9,16 @@ class Database {
         if (this.initialized) return;
         
         try {
+            console.log('Initializing database...');
+            console.log('POSTGRES_URL exists:', !!process.env.POSTGRES_URL);
             // Initialize database schema
             await this.createTables();
             this.initialized = true;
             console.log('Database initialized successfully');
         } catch (error) {
             console.error('Database initialization error:', error);
+            console.error('Error details:', error.message);
+            console.error('Error stack:', error.stack);
             throw error;
         }
     }

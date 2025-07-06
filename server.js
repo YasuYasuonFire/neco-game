@@ -22,11 +22,17 @@ app.get('/', (req, res) => {
 // Get all characters
 app.get('/api/characters', async (req, res) => {
     try {
+        console.log('API /characters called');
         const characters = await db.getAllCharacters();
+        console.log('Characters retrieved:', characters.length);
         res.json(characters);
     } catch (error) {
         console.error('Error fetching characters:', error);
-        res.status(500).json({ error: 'Failed to fetch characters' });
+        console.error('Error details:', error.message);
+        res.status(500).json({ 
+            error: 'Failed to fetch characters',
+            details: error.message 
+        });
     }
 });
 
