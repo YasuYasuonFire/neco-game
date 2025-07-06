@@ -5,7 +5,7 @@
   "scripts": {
     "start": "node server.js",
     "dev": "node server.js",
-    "build": "echo \"Static files, no build needed\"",
+    "build": "mkdir -p public && cp index.html public/ && cp game.js public/",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
