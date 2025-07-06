@@ -94,8 +94,13 @@ class NekoRaceGame {
             this.keys[e.code] = false;
         });
         
+        // Throttle resize events for better performance
+        let resizeTimeout;
         window.addEventListener('resize', () => {
-            this.resizeCanvas();
+            clearTimeout(resizeTimeout);
+            resizeTimeout = setTimeout(() => {
+                this.resizeCanvas();
+            }, 100);
         });
         
         document.querySelectorAll('.character-btn').forEach(btn => {
@@ -450,7 +455,7 @@ class NekoRaceGame {
             }
             
             // 画面端判定
-            npc.x = Math.max(0, Math.min(this.canvas.width - 30, npc.x));
+            npc.x = Math.max(0, Math.min(this.worldWidth - 30, npc.x));
         });
     }
     
