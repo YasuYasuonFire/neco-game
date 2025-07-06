@@ -1,0 +1,23 @@
+{
+  "name": "neco-game",
+  "version": "1.0.0",
+  "main": "game.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node server.js",
+    "build": "echo \"Static files, no build needed\"",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/YasuYasuonFire/neco-game.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/YasuYasuonFire/neco-game/issues"
+  },
+  "homepage": "https://github.com/YasuYasuonFire/neco-game#readme",
+  "description": "ねこねこスピードレース - A 2D side-scrolling racing game with cute cat characters"
+}
