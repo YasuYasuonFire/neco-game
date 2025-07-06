@@ -25,7 +25,16 @@ class NekoRaceGame {
         this.particles = [];
         
         this.keys = {};
+        this.touchControls = {
+            left: false,
+            right: false,
+            jump: false,
+            special: false
+        };
+        
         this.setupEventListeners();
+        this.setupTouchControls();
+        this.resizeCanvas();
         this.loadCharacters();
         this.gameLoop();
     }
@@ -85,6 +94,10 @@ class NekoRaceGame {
             this.keys[e.code] = false;
         });
         
+        window.addEventListener('resize', () => {
+            this.resizeCanvas();
+        });
+        
         document.querySelectorAll('.character-btn').forEach(btn => {
             btn.addEventListener('click', (e) => {
                 document.querySelectorAll('.character-btn').forEach(b => b.classList.remove('selected'));
@@ -100,6 +113,89 @@ class NekoRaceGame {
                 e.target.blur();
             } else {
                 alert('キャラクターを選択してください！');
+            }
+        });
+    }
+    
+    resizeCanvas() {
+        const container = document.querySelector('.game-container');
+        const containerRect = container.getBoundingClientRect();
+        const maxWidth = Math.min(800, containerRect.width - 80);
+        const maxHeight = Math.min(600, window.innerHeight - 250);
+        
+        // Calculate aspect ratio
+        const aspectRatio = 800 / 600;
+        let canvasWidth, canvasHeight;
+        
+        if (maxWidth / maxHeight > aspectRatio) {
+            canvasHeight = maxHeight;
+            canvasWidth = maxHeight * aspectRatio;
+        } else {
+            canvasWidth = maxWidth;
+            canvasHeight = maxWidth / aspectRatio;
+        }
+        
+        // On mobile, make the canvas smaller
+        if (window.innerWidth <= 768) {
+            canvasWidth = Math.min(canvasWidth, window.innerWidth - 40);
+            canvasHeight = canvasWidth / aspectRatio;
+        }
+        
+        this.canvas.width = canvasWidth;
+        this.canvas.height = canvasHeight;
+        
+        // Update camera bounds
+        this.cameraX = Math.max(0, Math.min(this.worldWidth - this.canvas.width, this.cameraX));
+    }
+    
+    setupTouchControls() {
+        const buttons = {
+            leftBtn: () => this.touchControls.left,
+            rightBtn: () => this.touchControls.right,
+            jumpBtn: () => this.touchControls.jump,
+            specialBtn: () => this.touchControls.special
+        };
+        
+        Object.keys(buttons).forEach(btnId => {
+            const btn = document.getElementById(btnId);
+            if (btn) {
+                const controlKey = btnId.replace('Btn', '');
+                
+                btn.addEventListener('touchstart', (e) => {
+                    e.preventDefault();
+                    this.touchControls[controlKey] = true;
+                    btn.classList.add('pressed');
+                });
+                
+                btn.addEventListener('touchend', (e) => {
+                    e.preventDefault();
+                    this.touchControls[controlKey] = false;
+                    btn.classList.remove('pressed');
+                });
+                
+                btn.addEventListener('touchcancel', (e) => {
+                    e.preventDefault();
+                    this.touchControls[controlKey] = false;
+                    btn.classList.remove('pressed');
+                });
+                
+                // Also support mouse events for desktop testing
+                btn.addEventListener('mousedown', (e) => {
+                    e.preventDefault();
+                    this.touchControls[controlKey] = true;
+                    btn.classList.add('pressed');
+                });
+                
+                btn.addEventListener('mouseup', (e) => {
+                    e.preventDefault();
+                    this.touchControls[controlKey] = false;
+                    btn.classList.remove('pressed');
+                });
+                
+                btn.addEventListener('mouseleave', (e) => {
+                    this.touchControls[controlKey] = false;
+                    btn.classList.remove('pressed');
+                });
             }
         });
     }
@@ -226,13 +322,16 @@ class NekoRaceGame {
     updatePlayer() {
         if (!this.player) return;
         
-        // 左右移動（マリオ風の加速・減速）
-        if (this.keys['ArrowLeft'] || this.keys['a'] || this.keys['A']) {
+        // 左右移動（マリオ風の加速・減速） - キーボード + タッチ
+        const leftPressed = this.keys['ArrowLeft'] || this.keys['a'] || this.keys['A'] || this.touchControls.left;
+        const rightPressed = this.keys['ArrowRight'] || this.keys['d'] || this.keys['D'] || this.touchControls.right;
+        
+        if (leftPressed) {
             this.player.vx -= this.player.acceleration;
             if (this.player.vx < -this.player.maxSpeed) {
                 this.player.vx = -this.player.maxSpeed;
             }
-        } else if (this.keys['ArrowRight'] || this.keys['d'] || this.keys['D']) {
+        } else if (rightPressed) {
             this.player.vx += this.player.acceleration;
             if (this.player.vx > this.player.maxSpeed) {
                 this.player.vx = this.player.maxSpeed;
@@ -246,8 +345,8 @@ class NekoRaceGame {
             }
         }
         
-        // ジャンプ（長押しで高くジャンプ）
-        const jumpKey = this.keys[' '] || this.keys['Space'];
+        // ジャンプ（長押しで高くジャンプ） - キーボード + タッチ
+        const jumpKey = this.keys[' '] || this.keys['Space'] || this.touchControls.jump;
         
         if (jumpKey && !this.player.jumpPressed && this.player.onGround) {
             this.player.vy = -15;
@@ -265,8 +364,8 @@ class NekoRaceGame {
             this.player.jumpPressed = false;
         }
         
-        // 特殊能力
-        if (this.keys['Shift'] && this.player.specialCooldown <= 0) {
+        // 特殊能力 - キーボード + タッチ
+        if ((this.keys['Shift'] || this.touchControls.special) && this.player.specialCooldown <= 0) {
             this.useSpecialAbility();
             this.player.specialCooldown = 180;
         }
