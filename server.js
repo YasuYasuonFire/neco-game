@@ -6,7 +6,19 @@ const app = express();
 const PORT = process.env.PORT || 3000;
 
 // Initialize database
-db.init().catch(console.error);
+let dbInitialized = false;
+
+async function ensureDbInit() {
+    if (!dbInitialized) {
+        try {
+            await db.init();
+            dbInitialized = true;
+        } catch (error) {
+            console.error('Database initialization failed:', error);
+            throw error;
+        }
+    }
+}
 
 // Middleware
 app.use(express.json());
@@ -23,6 +35,7 @@ app.get('/', (req, res) => {
 app.get('/api/characters', async (req, res) => {
     try {
         console.log('API /characters called');
+        await ensureDbInit();
         const characters = await db.getAllCharacters();
         console.log('Characters retrieved:', characters.length);
         res.json(characters);
